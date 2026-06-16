@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Directives for search engines to find your live PWA index
+Sitemap: https://paper2digital.netlify.app/sitemap.xml
