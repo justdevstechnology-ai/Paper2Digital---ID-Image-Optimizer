@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#ff9900"/>
+  
+  <text x="256" y="268" 
+        font-size="160" 
+        text-anchor="middle" 
+        dominant-baseline="central" 
+        fill="#232f3e" 
+        font-family="'Inter', system-ui, Arial, sans-serif" 
+        font-weight="800">P2D</text>
+</svg>
