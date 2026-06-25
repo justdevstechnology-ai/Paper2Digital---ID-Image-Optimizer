@@ -402,3 +402,28 @@ footer a {
     padding-top: max(14px, env(safe-area-inset-top));
   }
 }
+
+/* ==========================================
+   📦 OFFLINE FALLBACK BANNER RENDERING
+   ========================================== */
+.offline-fallback-banner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
+}
+
+.offline-fallback-banner a {
+  color: var(--orange);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.offline-fallback-banner a:hover {
+  text-decoration: underline;
+}
