@@ -54,7 +54,13 @@ window.onclick = e => {
 
   fileInput.onchange = e => {
     const file = e.target.files[0];
-    if (!file) return;
+    
+    // Fix: Clear previous state explicitly if user clears selection
+    if (!file) {
+      if (id === 'front') { frontImg = null; frontFile = null; } 
+      else { backImg = null; backFile = null; }
+      return;
+    }
     
     if (file.size > 15 * 1024 * 1024) {
       alert('File too large. Max 15MB per image.');
@@ -95,7 +101,9 @@ window.process = function() {
     return;
   }
   
-  document.getElementById('result').innerHTML = '<div class="alert warn">⏳ Optimizing...</div>';
+  const res = document.getElementById('result');
+  res.innerHTML = '<div class="alert warn">⏳ Optimizing...</div>';
+  
   const preset = presets[document.getElementById('preset').value];
   const cleanMode = document.getElementById('cleanMode').checked;
   const canvas = document.createElement('canvas');
@@ -103,6 +111,7 @@ window.process = function() {
 
   let w = Math.min(preset.maxW, frontImg.width);
   let h1 = Math.round(frontImg.height * w / frontImg.width);
+  // Evaluates state against active image constraints
   let h2 = backImg ? Math.round(backImg.height * w / backImg.width) + 24 : 0;
   
   canvas.width = w;
@@ -133,7 +142,9 @@ window.process = function() {
     const originalSize = (((frontFile?.size || 0) + (backFile?.size || 0)) / 1024).toFixed(1);
     const saved = originalSize > 0 ? (originalSize - size).toFixed(1) : 0;
     const savedPct = originalSize > 0 ? Math.round((saved / originalSize) * 100) : 0;
-    const res = document.getElementById('result');
+
+    // Reset container contents thoroughly before construction
+    res.innerHTML = '';
 
     if (Number(size) <= preset.maxKB) {
       res.innerHTML = `<div class="alert ok">✅ Success! ${size}KB / ${preset.maxKB}KB limit</div>`;
@@ -211,6 +222,26 @@ if (isIOS && !isStandalone) {
   if (installBtn) installBtn.style.display = 'flex';
   if (bannerBtn) bannerBtn.style.display = 'inline-flex';
 }
+
+// ==========================================
+// 📡 NETWORK STATUS & OFFLINE AD FALLBACKS
+// ==========================================
+function syncAdLayoutStatus() {
+  const fallbacks = document.querySelectorAll('.offline-fallback-banner');
+  const liveAds = document.querySelectorAll('.adsbygoogle');
+
+  if (!navigator.onLine) {
+    liveAds.forEach(ad => ad.style.display = 'none');
+    fallbacks.forEach(fb => fb.style.display = 'flex');
+  } else {
+    liveAds.forEach(ad => ad.style.display = 'block');
+    fallbacks.forEach(fb => fb.style.display = 'none');
+  }
+}
+
+window.addEventListener('online', syncAdLayoutStatus);
+window.addEventListener('offline', syncAdLayoutStatus);
+document.addEventListener('DOMContentLoaded', syncAdLayoutStatus);
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
