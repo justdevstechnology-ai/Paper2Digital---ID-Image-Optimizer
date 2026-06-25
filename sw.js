@@ -1,16 +1,16 @@
-const CACHE_NAME = 'paper2digital-v1'; // Fixed capitalization
+const CACHE_NAME = 'paper2digital-v2'; 
 const urlsToCache = [
   '/',
   '/index.html',
+  '/ads.txt',
   '/style.css',
   '/script.js',
   '/manifest.json',
   '/favicon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/robots.txt',
+  '/sitemap.xml',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap',
   'https://fonts.googleapis.com/icon?family=Material+Icons+Outlined'
-  // Removed the highly volatile direct .woff2 URL to prevent install failures
 ];
 
 // Install - cache files
@@ -39,7 +39,6 @@ self.addEventListener('activate', event => {
 
 // Fetch - serve from cache, fallback to network
 self.addEventListener('fetch', event => {
-  // Only handle HTTP/S requests (ignores chrome-extension:// schemes)
   if (!event.request.url.startsWith('http')) return;
 
   event.respondWith(
@@ -49,7 +48,6 @@ self.addEventListener('fetch', event => {
       }
 
       return fetch(event.request).catch(() => {
-        // Offline fallback for HTML / Navigation requests
         if (event.request.mode === 'navigate' || event.request.destination === 'document') {
           return caches.match('/index.html');
         }
