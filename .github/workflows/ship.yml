@@ -1,0 +1,40 @@
+name: Tenora Ship Runner
+
+on:
+  repository_dispatch:
+    types: [tenora_ship_trigger]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and Build Site Module
+        run: |
+          npm install
+          npm run build
+
+      - name: Push Build Artifacts to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist # Changes this to 'build' if you use React/Vite defaults that build into /build folder
+          branch: gh-pages # This automatically pushes your built code to a clean branch for free hosting
+
+      - name: Report Success State back to Firebase
+        if: success()
+        run: |
+          curl -X PATCH -d '{"status": "Success", "updatedAt": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"}' \
+          "${{ github.event.client_payload.firebase_url }}/labs/5734bd79-bdd1-4d9c-86be-5fb0a41c246d/ship_projects/${{ github.event.client_payload.project_id }}.json"
+
+      - name: Report Failure State back to Firebase
+        if: failure()
+        run: |
+          curl -X PATCH -d '{"status": "Failed", "updatedAt": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'"}' \
+          "${{ github.event.client_payload.firebase_url }}/labs/5734bd79-bdd1-4d9c-86be-5fb0a41c246d/ship_projects/${{ github.event.client_payload.project_id }}.json"
