@@ -27,22 +27,19 @@ window.toggleTheme = function() {
 // 📦 MODALS + INTERACTION (Bound to Window)
 // ==========================================
 window.openModal = function(id) {
-  document.getElementById(id).style.display = 'flex';
+  const targetModal = document.getElementById(id);
+  if (targetModal) targetModal.style.display = 'flex';
 };
 
 window.closeModal = function(id) {
-  document.getElementById(id).style.display = 'none';
+  const targetModal = document.getElementById(id);
+  if (targetModal) targetModal.style.display = 'none';
 };
 
 window.dismissBanner = function() {
-  document.getElementById('installBanner').style.display = 'none';
+  const banner = document.getElementById('installBanner');
+  if (banner) banner.style.display = 'none';
   localStorage.dismissBanner = 'true';
-};
-
-window.onclick = e => {
-  if (e.target.classList.contains('modal-overlay')) {
-    e.target.style.display = 'none';
-  }
 };
 
 // ==========================================
@@ -197,8 +194,10 @@ window.addEventListener('beforeinstallprompt', (e) => {
   }
 });
 
+// FIXED: Added defensive fallback validation check (`if (btn)`) to stop runtime code execution crashes
 [installBtn, bannerBtn].forEach(btn => {
-  btn?.addEventListener('click', async () => {
+  if (!btn) return; 
+  btn.addEventListener('click', async () => {
     if (isIOS && !isStandalone) {
       window.openModal('iosInstallModal');
       return;
@@ -251,3 +250,77 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// ============================================================================
+// 🎬 ONBOARDING SYSTEM & ACCESSIBILITY CONTROLLERS (Bound to Window)
+// ============================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  if (!localStorage.getItem('p2d_onboarded')) {
+    const onboardScreen = document.getElementById('onboardingScreen');
+    if (onboardScreen) onboardScreen.style.display = 'flex';
+  }
+});
+
+window.nextOnboardSlide = function(targetSlideNum) {
+  document.querySelectorAll('.onboarding-card').forEach(card => {
+    card.classList.remove('active');
+  });
+  const nextSlide = document.getElementById(`slide${targetSlideNum}`);
+  if (nextSlide) nextSlide.classList.add('active');
+};
+
+window.completeOnboarding = function() {
+  const overlay = document.getElementById('onboardingScreen');
+  if (!overlay) return;
+  overlay.style.opacity = '0';
+  overlay.style.transform = 'scale(0.95)';
+  
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    localStorage.setItem('p2d_onboarded', 'true');
+  }, 400);
+};
+
+window.scrollToHelp = function() {
+  const targetElement = document.getElementById('helpSection');
+  if (targetElement) {
+    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    targetElement.style.outline = '2px solid #ff9900';
+    setTimeout(() => { targetElement.style.outline = 'none'; }, 2000);
+  }
+};
+
+// ============================================================================
+// ⚙️ DROPDOWN MANAGEMENT & GLOBAL HELP TOGGLE HANDLERS (Bound to Window)
+// ============================================================================
+window.toggleSettingsDropdown = function() {
+  const dropdown = document.getElementById('settingsDropdown');
+  if (dropdown) dropdown.classList.toggle('show');
+};
+
+window.triggerHelpLayout = function() {
+  const helpBlock = document.getElementById('helpSection');
+  if (helpBlock) {
+    helpBlock.style.display = 'block';
+    helpBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    helpBlock.style.outline = '2px solid #ff9900';
+    setTimeout(() => { helpBlock.style.outline = 'none'; }, 2000);
+  }
+};
+
+// FIXED: Unified Single Global Event Listener Stack (Combines Modals and Dropdowns safely)
+window.addEventListener('click', (e) => {
+  // 1. Close dropdown if clicked outside settings container
+  if (!e.target.closest('.settings-container')) {
+    const dropdown = document.getElementById('settingsDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+      dropdown.classList.remove('show');
+    }
+  }
+  
+  // 2. Close active modal overlays if backdrop is clicked
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.style.display = 'none';
+  }
+});
